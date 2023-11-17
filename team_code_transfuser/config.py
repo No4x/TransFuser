@@ -207,16 +207,26 @@ class GlobalConfig:
         self.root_dir = root_dir
         if (setting == 'all'): # All towns used for training no validation data
             self.train_towns = os.listdir(self.root_dir)
-            self.val_towns = [self.train_towns[0]]
+            #self.val_towns = [self.train_towns[0]]
+            self.val_towns = self.train_towns #11.15
             self.train_data, self.val_data = [], []
             for town in self.train_towns:
-                root_files = os.listdir(os.path.join(self.root_dir, town)) #Town folders
+                if town != 'weather-3':
+                    continue #11.15
+                root_files = os.listdir(os.path.join(self.root_dir, town))
+                print(f'root_files{root_files}')
                 for file in root_files:
+                    if file != 'data':
+                        continue  #11.15
                     if not os.path.isfile(os.path.join(self.root_dir, file)):
                         self.train_data.append(os.path.join(self.root_dir, town, file))
             for town in self.val_towns:
+                if town != 'weather-3':
+                    continue #11.15
                 root_files = os.listdir(os.path.join(self.root_dir, town))
                 for file in root_files:
+                    if file != 'data':
+                        continue #11.15
                     if not os.path.isfile(os.path.join(self.root_dir, file)):
                         self.val_data.append(os.path.join(self.root_dir, town, file))
 
@@ -245,6 +255,8 @@ class GlobalConfig:
             pass
         else:
             print("Error: Selected setting: ", setting, " does not exist.")
+
+        print(f"config town{self.train_towns}") #11.15
 
         for k,v in kwargs.items():
             setattr(self, k, v)

@@ -43,14 +43,17 @@ class CARLA_Data(Dataset):
         self.labels = []
         self.measurements = []
 
+
         for sub_root in tqdm(root, file=sys.stdout):
             sub_root = Path(sub_root)
 
             # list sub-directories in root
             root_files = os.listdir(sub_root)
             routes = [folder for folder in root_files if not os.path.isfile(os.path.join(sub_root,folder))]
+            print(f"routes:{routes}")
             for route in routes:
                 route_dir = sub_root / route
+                print(route_dir)
                 num_seq = len(os.listdir(route_dir / "lidar"))
 
                 # ignore the first two and last two frame
@@ -65,16 +68,16 @@ class CARLA_Data(Dataset):
                     measurement= []
                     # Loads the current (and past) frames (if seq_len > 1)
                     for idx in range(self.seq_len):
-                        image.append(route_dir / "rgb" / ("%04d.png" % (seq + idx)))
-                        bev.append(route_dir / "topdown" / ("encoded_%04d.png" % (seq + idx)))
-                        depth.append(route_dir / "depth" / ("%04d.png" % (seq + idx)))
-                        semantic.append(route_dir / "semantics" / ("%04d.png" % (seq + idx)))
-                        lidar.append(route_dir / "lidar" / ("%04d.npy" % (seq + idx)))
-                        measurement.append(route_dir / "measurements" / ("%04d.json"%(seq+idx)))
+                        image.append(route_dir / "rgb_tf" / ("%04d.png" % (seq + idx)))
+                        bev.append(route_dir / "topdown_tf" / ("encoded_%04d.png" % (seq + idx)))
+                        depth.append(route_dir / "depth_tf" / ("%04d.png" % (seq + idx)))
+                        semantic.append(route_dir / "seg_tf" / ("%04d.png" % (seq + idx)))  #semantics
+                        lidar.append(route_dir / "lidar_tf" / ("%04d.npy" % (seq + idx)))
+                        measurement.append(route_dir / "measurements_tf" / ("%04d.json"%(seq+idx)))   #add tf
 
                     # Additionally load future labels of the waypoints
                     for idx in range(self.seq_len + self.pred_len):
-                        label.append(route_dir / "label_raw" / ("%04d.json" % (seq + idx)))
+                        label.append(route_dir / "label_raw_tf" / ("%04d.json" % (seq + idx)))  # add tf
 
                     self.images.append(image)
                     self.bevs.append(bev)

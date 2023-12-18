@@ -231,7 +231,6 @@ class GlobalConfig:
                 pattern = re.compile('.*town(\d\d)')
                 for file in root_files:
                     res = pattern.findall(file)
-                    print(f"res:{res}")
                     town = 'town' + res[0]
                     if town in self.train_towns:
                         self.train_data.append(os.path.join(self.root_dir, weather, "data", file))
@@ -248,20 +247,21 @@ class GlobalConfig:
             #         if not os.path.isfile(os.path.join(self.root_dir, file)):
             #             self.val_data.append(os.path.join(self.root_dir, town, file))
 
-        elif (setting == '02_05_withheld'): #Town02 and 05 withheld during training
-            print("Skip Town02 and Town05")
+        #elif (setting == '02_05_withheld'): #Town02 and 05 withheld during training
+        elif (setting == '05_withheld'):  # Town05 withheld during training
+            print("SkipTown05")
             #self.train_towns = os.listdir(self.root_dir) #Scenario Folders
-            self.train_towns.remove("town02")
             self.train_towns.remove("town05")
-            self.val_towns =["town02","town05"]
+            self.val_towns =["town05"]
             # self.val_towns = self.train_towns # Town 02 and 05 get selected automatically below
             self.train_data, self.val_data = [], []
 
             for weather in self.weathers:
+                pattern = re.compile('.*town(\d\d)')
                 root_files = os.listdir(os.path.join(self.root_dir, weather, "data"))
                 for file in root_files:
                     res = pattern.findall(file)
-                    town = 'town' + res[0][1]
+                    town = 'town' + res[0]
                     if town in self.train_towns:
                         self.train_data.append(os.path.join(self.root_dir, weather, "data", file))
                     elif town in self.val_towns:

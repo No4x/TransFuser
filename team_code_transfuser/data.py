@@ -62,7 +62,7 @@ class CARLA_Data(Dataset):
                 measurement= []
                 # Loads the current (and past) frames (if seq_len > 1)
                 for idx in range(self.seq_len):
-                    image.append(route_dir / "rgb_tf" / ("%04d.png" % (seq + idx)))
+                    image.append(route_dir / "rgb_tf_resized" / ("%04d.png" % (seq + idx)))
                     bev.append(route_dir / "topdown_tf" / ("encoded_%04d.png" % (seq + idx)))
                     depth.append(route_dir / "depth_tf" / ("%04d.png" % (seq + idx)))
                     semantic.append(route_dir / "seg_tf" / ("%04d.png" % (seq + idx)))  #semantics

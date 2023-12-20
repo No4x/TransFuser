@@ -162,7 +162,10 @@ class CARLA_Data(Dataset):
                 images_i = cv2.imread(str(images[i], encoding='utf-8'), cv2.IMREAD_COLOR)
                 if(images_i is None):
                     print("Error loading file: ", str(images[i], encoding='utf-8'))
-                images_i = scale_image_cv2(cv2.cvtColor(images_i, cv2.COLOR_BGR2RGB), self.scale)
+                try:
+                    images_i = scale_image_cv2(cv2.cvtColor(images_i, cv2.COLOR_BGR2RGB), self.scale)
+                except Exception as e:
+                    print("error:",e,"images:",images_i,str(images[i]))
 
                 bev_array = cv2.imread(str(bevs[i], encoding='utf-8'), cv2.IMREAD_UNCHANGED)
                 bev_array = cv2.cvtColor(bev_array, cv2.COLOR_BGR2RGB)

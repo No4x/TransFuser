@@ -1,4 +1,5 @@
 import os
+import re
 
 class GlobalConfig:
     """ base architecture configurations """
@@ -205,42 +206,84 @@ class GlobalConfig:
 
     def __init__(self, root_dir='', setting='all', **kwargs):
         self.root_dir = root_dir
+        self.weathers=[]
+        self.train_towns=[]
+        dataset_indexs = self._load_text(os.path.join(self.root_dir, 'dataset_index.txt')).split('\n')
+        pattern = re.compile('weather-(\d+).*town(\d\d)')
+        for line in dataset_indexs:
+            if len(line.split()) != 2:
+                continue
+            path, frames = line.split()
+            res = pattern.findall(path)
+            weather = 'weather-'+res[0][0]
+            town = 'town'+res[0][1]
+            if weather not in self.weathers:
+                self.weathers.append(weather)
+            if town not in self.train_towns:
+                self.train_towns.append(town)
         if (setting == 'all'): # All towns used for training no validation data
-            self.train_towns = os.listdir(self.root_dir)
+            #self.train_towns = os.listdir(self.root_dir)
             self.val_towns = [self.train_towns[0]]
             self.train_data, self.val_data = [], []
-            for town in self.train_towns:
-                root_files = os.listdir(os.path.join(self.root_dir, town)) #Town folders
-                for file in root_files:
-                    if not os.path.isfile(os.path.join(self.root_dir, file)):
-                        self.train_data.append(os.path.join(self.root_dir, town, file))
-            for town in self.val_towns:
-                root_files = os.listdir(os.path.join(self.root_dir, town))
-                for file in root_files:
-                    if not os.path.isfile(os.path.join(self.root_dir, file)):
-                        self.val_data.append(os.path.join(self.root_dir, town, file))
 
-        elif (setting == '02_05_withheld'): #Town02 and 05 withheld during training
-            print("Skip Town02 and Town05")
-            self.train_towns = os.listdir(self.root_dir) #Scenario Folders
-            self.val_towns = self.train_towns # Town 02 and 05 get selected automatically below
+            for weather in self.weathers:
+                root_files = os.listdir(os.path.join(self.root_dir, weather, "data"))
+                pattern = re.compile('.*town(\d\d)')
+                for file in root_files:
+                    res = pattern.findall(file)
+                    town = 'town' + res[0]
+                    if town in self.train_towns:
+                        self.train_data.append(os.path.join(self.root_dir, weather, "data", file))
+                    if town in self.val_towns:
+                        self.val_data.append(os.path.join(self.root_dir, weather, "data", file))
+            # for town in self.train_towns:
+            #     root_files = os.listdir(os.path.join(self.root_dir, town))
+            #     for file in root_files:
+            #         if not os.path.isfile(os.path.join(self.root_dir, file)):
+            #             self.train_data.append(os.path.join(self.root_dir, town, file))
+            # for town in self.val_towns:
+            #     root_files = os.listdir(os.path.join(self.root_dir, town))
+            #     for file in root_files:
+            #         if not os.path.isfile(os.path.join(self.root_dir, file)):
+            #             self.val_data.append(os.path.join(self.root_dir, town, file))
+
+        #elif (setting == '02_05_withheld'): #Town02 and 05 withheld during training
+        elif (setting == '05_withheld'):  # Town05 withheld during training
+            print("SkipTown05")
+            #self.train_towns = os.listdir(self.root_dir) #Scenario Folders
+            self.train_towns.remove("town05")
+            self.val_towns =["town05"]
+            # self.val_towns = self.train_towns # Town 02 and 05 get selected automatically below
             self.train_data, self.val_data = [], []
-            for town in self.train_towns:
-                root_files = os.listdir(os.path.join(self.root_dir, town)) #Town folders
+
+            for weather in self.weathers:
+                pattern = re.compile('.*town(\d\d)')
+                root_files = os.listdir(os.path.join(self.root_dir, weather, "data"))
                 for file in root_files:
-                    if ((file.find('Town02') != -1) or (file.find('Town05') != -1)):  #We don't train on 05 and 02 to reserve them as test towns
-                        continue
-                    if not os.path.isfile(os.path.join(self.root_dir, file)):
-                        print("Train Folder: ", file)
-                        self.train_data.append(os.path.join(self.root_dir, town, file))
-            for town in self.val_towns:
-                root_files = os.listdir(os.path.join(self.root_dir, town))
-                for file in root_files:
-                    if ((file.find('Town02') == -1) and (file.find('Town05') == -1)): # Only use Town 02 and 05 for validation
-                        continue
-                    if not os.path.isfile(os.path.join(self.root_dir, file)):
-                        print("Val Folder: ", file)
-                        self.val_data.append(os.path.join(self.root_dir, town, file))
+                    res = pattern.findall(file)
+                    town = 'town' + res[0]
+                    if town in self.train_towns:
+                        self.train_data.append(os.path.join(self.root_dir, weather, "data", file))
+                    elif town in self.val_towns:
+                        self.val_data.append(os.path.join(self.root_dir, weather, "data", file))
+
+            # for town in self.train_towns:
+            #     root_files = os.listdir(os.path.join(self.root_dir, town)) #Town folders
+            #     for file in root_files:
+            #         if ((file.find('Town02') != -1) or (file.find('Town05') != -1)):  #We don't train on 05 and 02 to reserve them as test towns
+            #             continue
+            #         if not os.path.isfile(os.path.join(self.root_dir, file)):
+            #             print("Train Folder: ", file)
+            #             self.train_data.append(os.path.join(self.root_dir, town, file))
+            # for town in self.val_towns:
+            #     root_files = os.listdir(os.path.join(self.root_dir, town))
+            #     for file in root_files:
+            #         if ((file.find('Town02') == -1) and (file.find('Town05') == -1)): # Only use Town 02 and 05 for validation
+            #             continue
+            #         if not os.path.isfile(os.path.join(self.root_dir, file)):
+            #             print("Val Folder: ", file)
+            #             self.val_data.append(os.path.join(self.root_dir, town, file))
+
         elif (setting == 'eval'): #No training data needed during evaluation.
             pass
         else:
@@ -248,3 +291,7 @@ class GlobalConfig:
 
         for k,v in kwargs.items():
             setattr(self, k, v)
+    def _load_text(self, path):
+        #text = open(self.root_path + path, 'r').read()
+        text = open(path, 'r').read()
+        return text

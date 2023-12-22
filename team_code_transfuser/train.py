@@ -37,7 +37,8 @@ def main():
     parser.add_argument('--start_epoch', type=int, default=0, help='Epoch to start with. Useful when continuing trainings via load_file.')
     parser.add_argument('--setting', type=str, default='all', help='What training setting to use. Options: '
                                                                    'all: Train on all towns no validation data. '
-                                                                   '02_05_withheld: Do not train on Town 02 and Town 05. Use the data as validation data.')
+                                                                   '02_05_withheld: Do not train on Town 02 and Town 05. Use the data as validation data.'
+                                                                    '05_withheld: Do not train on Town 05. Use the data as validation data.')
     parser.add_argument('--root_dir', type=str, default=r'/mnt/qb/geiger/kchitta31/datasets/carla/pami_v1_dataset_23_11', help='Root directory of your training data')
     parser.add_argument('--schedule', type=int, default=1,
                         help='Whether to train with a learning rate schedule. 1 = True')
@@ -394,6 +395,9 @@ def seed_worker(worker_id):
 if __name__ == "__main__":
     # The default method fork can run into deadlocks.
     # To use the dataloader with multiple workers forkserver or spawn should be used.
+    start_time=datetime.datetime.now()
     mp.set_start_method('fork')
     print("Start method of multiprocessing:", mp.get_start_method())
     main()
+    end_time = datetime.datetime.now()
+    print(f"cost time:{end_time-start_time}")

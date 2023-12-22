@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="On explicit save action" serverName="zizhen@134.169.30.87:22 password" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false" autoUploadExternalChanges="true">
-    <option name="confirmBeforeUploading" value="false" />
+  <component name="PublishConfigData" autoUpload="On explicit save action" serverName="zizhen@134.169.30.190:22 password" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
-      <paths name="zizhen@134.169.30.190:22 password">
+      <paths name="dll04@134.169.30.190:22 password">
         <serverdata>
           <mappings>
-            <mapping deploy="/work/TransFuser" local="$PROJECT_DIR$" web="/" />
-            <mapping deploy="/work/InterFuser" local="$PROJECT_DIR$/../InterFuser" web="/" />
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="zizhen@134.169.30.87:22 password">
+      <paths name="zizhen@134.169.30.190:22 password">
         <serverdata>
           <mappings>
             <mapping deploy="/TransFuser" local="$PROJECT_DIR$" web="/" />

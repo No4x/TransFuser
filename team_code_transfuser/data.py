@@ -45,44 +45,41 @@ class CARLA_Data(Dataset):
 
         for sub_root in tqdm(root, file=sys.stdout):
             sub_root = Path(sub_root)
-
             # list sub-directories in root
-            root_files = os.listdir(sub_root)
-            routes = [folder for folder in root_files if not os.path.isfile(os.path.join(sub_root,folder))]
-            for route in routes:
-                route_dir = sub_root / route
-                num_seq = len(os.listdir(route_dir / "lidar"))
+            # root_files = os.listdir(sub_root)
+            # routes = [folder for folder in root_files if not os.path.isfile(os.path.join(sub_root,folder))]
+            route_dir = sub_root
+            num_seq = len(os.listdir(route_dir / "lidar"))
+            # ignore the first two and last two frame
+            for seq in range(2, num_seq - self.pred_len - self.seq_len - 2):
+                # load input seq and pred seq jointly
+                image = []
+                bev = []
+                depth = []
+                semantic = []
+                lidar = []
+                label = []
+                measurement= []
+                # Loads the current (and past) frames (if seq_len > 1)
+                for idx in range(self.seq_len):
+                    image.append(route_dir / "rgb_tf_resized" / ("%04d.png" % (seq + idx)))
+                    bev.append(route_dir / "topdown_tf" / ("encoded_%04d.png" % (seq + idx)))
+                    depth.append(route_dir / "depth_tf" / ("%04d.png" % (seq + idx)))
+                    semantic.append(route_dir / "seg_tf" / ("%04d.png" % (seq + idx)))  #semantics
+                    lidar.append(route_dir / "lidar_tf" / ("%04d.npy" % (seq + idx)))
+                    measurement.append(route_dir / "measurements_tf" / ("%04d.json"%(seq+idx)))   #add tf
 
-                # ignore the first two and last two frame
-                for seq in range(2, num_seq - self.pred_len - self.seq_len - 2):
-                    # load input seq and pred seq jointly
-                    image = []
-                    bev = []
-                    depth = []
-                    semantic = []
-                    lidar = []
-                    label = []
-                    measurement= []
-                    # Loads the current (and past) frames (if seq_len > 1)
-                    for idx in range(self.seq_len):
-                        image.append(route_dir / "rgb" / ("%04d.png" % (seq + idx)))
-                        bev.append(route_dir / "topdown" / ("encoded_%04d.png" % (seq + idx)))
-                        depth.append(route_dir / "depth" / ("%04d.png" % (seq + idx)))
-                        semantic.append(route_dir / "semantics" / ("%04d.png" % (seq + idx)))
-                        lidar.append(route_dir / "lidar" / ("%04d.npy" % (seq + idx)))
-                        measurement.append(route_dir / "measurements" / ("%04d.json"%(seq+idx)))
+                # Additionally load future labels of the waypoints
+                for idx in range(self.seq_len + self.pred_len):
+                    label.append(route_dir / "label_raw_tf" / ("%04d.json" % (seq + idx)))  # add tf
 
-                    # Additionally load future labels of the waypoints
-                    for idx in range(self.seq_len + self.pred_len):
-                        label.append(route_dir / "label_raw" / ("%04d.json" % (seq + idx)))
-
-                    self.images.append(image)
-                    self.bevs.append(bev)
-                    self.depths.append(depth)
-                    self.semantics.append(semantic)
-                    self.lidars.append(lidar)
-                    self.labels.append(label)
-                    self.measurements.append(measurement)
+                self.images.append(image)
+                self.bevs.append(bev)
+                self.depths.append(depth)
+                self.semantics.append(semantic)
+                self.lidars.append(lidar)
+                self.labels.append(label)
+                self.measurements.append(measurement)
 
         # There is a complex "memory leak"/performance issue when using Python objects like lists in a Dataloader that is loaded with multiprocessing, num_workers > 0
         # A summary of that ongoing discussion can be found here https://github.com/pytorch/pytorch/issues/13246#issuecomment-905703662
@@ -165,7 +162,10 @@ class CARLA_Data(Dataset):
                 images_i = cv2.imread(str(images[i], encoding='utf-8'), cv2.IMREAD_COLOR)
                 if(images_i is None):
                     print("Error loading file: ", str(images[i], encoding='utf-8'))
-                images_i = scale_image_cv2(cv2.cvtColor(images_i, cv2.COLOR_BGR2RGB), self.scale)
+                try:
+                    images_i = scale_image_cv2(cv2.cvtColor(images_i, cv2.COLOR_BGR2RGB), self.scale)
+                except Exception as e:
+                    print("error:",e,"images:",images_i,str(images[i]))
 
                 bev_array = cv2.imread(str(bevs[i], encoding='utf-8'), cv2.IMREAD_UNCHANGED)
                 bev_array = cv2.cvtColor(bev_array, cv2.COLOR_BGR2RGB)

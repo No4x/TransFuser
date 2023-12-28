@@ -102,7 +102,7 @@ def main():
         os.environ["CUDA_VISIBLE_DEVICES"] = str(local_rank) # Hide devices that are not used by this process
 
         torch.distributed.init_process_group(backend='nccl', init_method='env://', world_size=world_size, rank=rank,
-                                             timeout=datetime.timedelta(minutes=15))
+                                             timeout=datetime.timedelta(minutes=300))
 
         torch.distributed.barrier(device_ids=[local_rank])
     else:

@@ -20,12 +20,13 @@ from shapely.geometry import Polygon
 
 import itertools
 import pathlib
+import datetime
 SAVE_PATH = os.environ.get('SAVE_PATH')
 
-if not SAVE_PATH:
-    SAVE_PATH = None
-else:
-    pathlib.Path(SAVE_PATH).mkdir(parents=True, exist_ok=True)
+# if not SAVE_PATH:
+#     SAVE_PATH = None
+# else:
+#     pathlib.Path(SAVE_PATH).mkdir(parents=True, exist_ok=True)
 
 def get_entry_point():
     return 'HybridAgent'
@@ -113,6 +114,19 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
         self._route_planner = RoutePlanner(self.config.route_planner_min_distance, self.config.route_planner_max_distance)
         self._route_planner.set_route(self._global_plan, True)
         self.initialized = True
+        self.frame=0
+
+        if SAVE_PATH is not None:
+            now = datetime.datetime.now()
+            string = pathlib.Path(os.environ['ROUTES']).stem + '_'
+            string += '_'.join(map(lambda x: '%02d' % x, (now.month, now.day, now.hour, now.minute, now.second)))
+
+            print(string)
+
+            self.save_path = pathlib.Path(os.environ['SAVE_PATH']) / string
+            self.save_path.mkdir(parents=True, exist_ok=False)
+            (self.save_path / 'rgb').mkdir(parents=True, exist_ok=False)
+            (self.save_path / 'rgb_back').mkdir(parents=True, exist_ok=False)
 
     def _get_position(self, tick_data):
         gps = tick_data['gps']
@@ -190,9 +204,6 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
             rgb.append(rgb_pos)
         rgb = np.concatenate(rgb, axis=1)
 
-        if(SAVE_PATH != None): #Debug camera for visualizations
-            # don't need buffer for it always use the latest one
-            self.rgb_back = input_data["rgb_back"][1][:, :, :3]
 
         gps = input_data['gps'][1][:2]
         speed = input_data['speed'][1]['speed']
@@ -206,7 +217,10 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
                 'speed': speed,
                 'compass': compass,
                 }
-
+        if(SAVE_PATH != None): #Debug camera for visualizations
+            # don't need buffer for it always use the latest one
+            self.rgb_back = input_data["rgb_back"][1][:, :, :3]
+            result.update({'rgb_back': self.rgb_back})
         if (self.backbone != 'latentTF'):
             lidar = input_data['lidar'][1][:, :3]
             result['lidar'] = lidar
@@ -391,7 +405,19 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
         self.control = control
 
         self.update_gps_buffer(self.control, tick_data['compass'], tick_data['speed'])
+
+        if self.step %30 ==0:
+
+            self.save(tick_data,self.frame)
+            self.frame += 1
         return control
+
+    def save(self,tick_data,frame):
+        img = cv2.cvtColor(tick_data['rgb'], cv2.COLOR_RGB2BGR)
+        cv2.imwrite(str(self.save_path / 'rgb' / ('%04d.png' % frame)), img)
+
+        img = cv2.cvtColor(tick_data['rgb_back'], cv2.COLOR_RGB2BGR)
+        cv2.imwrite(str(self.save_path / 'rgb_back' / ('%04d.png' % frame)), img)
 
     def bb_detected_in_front_of_vehicle(self, ego_speed):
         if (len(self.bb_buffer) < 1):  # We only start after we have 4 time steps.

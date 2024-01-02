@@ -208,19 +208,20 @@ class GlobalConfig:
         self.root_dir = root_dir
         self.weathers=[]
         self.train_towns=[]
-        dataset_indexs = self._load_text(os.path.join(self.root_dir, 'dataset_index.txt')).split('\n')
-        pattern = re.compile('weather-(\d+).*town(\d\d)')
-        for line in dataset_indexs:
-            if len(line.split()) != 2:
-                continue
-            path, frames = line.split()
-            res = pattern.findall(path)
-            weather = 'weather-'+res[0][0]
-            town = 'town'+res[0][1]
-            if weather not in self.weathers:
-                self.weathers.append(weather)
-            if town not in self.train_towns:
-                self.train_towns.append(town)
+        if setting!='eval':
+            dataset_indexs = self._load_text(os.path.join(self.root_dir, 'dataset_index.txt')).split('\n')
+            pattern = re.compile('weather-(\d+).*town(\d\d)')
+            for line in dataset_indexs:
+                if len(line.split()) != 2:
+                    continue
+                path, frames = line.split()
+                res = pattern.findall(path)
+                weather = 'weather-'+res[0][0]
+                town = 'town'+res[0][1]
+                if weather not in self.weathers:
+                    self.weathers.append(weather)
+                if town not in self.train_towns:
+                    self.train_towns.append(town)
         if (setting == 'all'): # All towns used for training no validation data
             #self.train_towns = os.listdir(self.root_dir)
             self.val_towns = [self.train_towns[0]]

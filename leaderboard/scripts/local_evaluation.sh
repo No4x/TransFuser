@@ -1,5 +1,5 @@
-export CARLA_ROOT=${1:-/home/kchitta/Documents/CARLA_0.9.10.1}
-export WORK_DIR=${2:-/home/kchitta/Documents/transfuser}
+export CARLA_ROOT=${1:-/home/zizhen/work/TransFuser/carla}
+export WORK_DIR=${2:-/home/zizhen/work/TransFuser}
 
 export CARLA_SERVER=${CARLA_ROOT}/CarlaUE4.sh
 export PYTHONPATH=$PYTHONPATH:${CARLA_ROOT}/PythonAPI
@@ -11,9 +11,14 @@ export PYTHONPATH="${CARLA_ROOT}/PythonAPI/carla/":"${SCENARIO_RUNNER_ROOT}":"${
 
 export SCENARIOS=${WORK_DIR}/leaderboard/data/longest6/eval_scenarios.json
 export ROUTES=${WORK_DIR}/leaderboard/data/longest6/longest6.xml
+#export ROUTES=/home/zizhen/work/InterFuser/leaderboard/data/training_routes/routes_town05_long.xml
+#export SCENARIOS=/home/zizhen/work/InterFuser/leaderboard/data/scenarios/town05_all_scenarios.json
 export REPETITIONS=1
 export CHALLENGE_TRACK_CODENAME=SENSORS
-export CHECKPOINT_ENDPOINT=${WORK_DIR}/results/transfuser_longest6.json
+export CHECKPOINT_ENDPOINT=${WORK_DIR}/results/transfuser_longst6.json
+export PORT=2020 # same as the carla server port
+export TM_PORT=4020 # port for traffic manager, required when spawning multiple servers/clients
+export SAVE_PATH=${WORK_DIR}/data/transfuser
 export TEAM_AGENT=${WORK_DIR}/team_code_transfuser/submission_agent.py
 export TEAM_CONFIG=${WORK_DIR}/model_ckpt/transfuser
 export DEBUG_CHALLENGE=0
@@ -29,4 +34,6 @@ python3 ${LEADERBOARD_ROOT}/leaderboard/leaderboard_evaluator_local.py \
 --agent=${TEAM_AGENT} \
 --agent-config=${TEAM_CONFIG} \
 --debug=${DEBUG_CHALLENGE} \
+--port=${PORT} \
+--trafficManagerPort=${TM_PORT} \
 --resume=${RESUME}

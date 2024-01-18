@@ -62,7 +62,7 @@ class CARLA_Data(Dataset):
                 measurement= []
                 # Loads the current (and past) frames (if seq_len > 1)
                 for idx in range(self.seq_len):
-                    image.append(route_dir / "rgb_tf_resized" / ("%04d.png" % (seq + idx)))
+                    image.append(route_dir / "rgb_tf" / ("%04d.png" % (seq + idx)))
                     bev.append(route_dir / "topdown_tf" / ("encoded_%04d.png" % (seq + idx)))
                     depth.append(route_dir / "depth_tf" / ("%04d.png" % (seq + idx)))
                     semantic.append(route_dir / "seg_tf" / ("%04d.png" % (seq + idx)))  #semantics
@@ -162,10 +162,8 @@ class CARLA_Data(Dataset):
                 images_i = cv2.imread(str(images[i], encoding='utf-8'), cv2.IMREAD_COLOR)
                 if(images_i is None):
                     print("Error loading file: ", str(images[i], encoding='utf-8'))
-                try:
-                    images_i = scale_image_cv2(cv2.cvtColor(images_i, cv2.COLOR_BGR2RGB), self.scale)
-                except Exception as e:
-                    print("error:",e,"images:",images_i,str(images[i]))
+
+                images_i = scale_image_cv2(cv2.cvtColor(images_i, cv2.COLOR_BGR2RGB), self.scale)
 
                 bev_array = cv2.imread(str(bevs[i], encoding='utf-8'), cv2.IMREAD_UNCHANGED)
                 bev_array = cv2.cvtColor(bev_array, cv2.COLOR_BGR2RGB)
@@ -333,7 +331,8 @@ class CARLA_Data(Dataset):
         data['theta'] = measurements[self.seq_len-1]['theta']
         data['x_command'] = measurements[self.seq_len-1]['x_command']
         data['y_command'] = measurements[self.seq_len-1]['y_command']
-
+        if data['theta'] != data['theta']:
+            return self.__getitem__(index+1)
         # target points
         # convert x_command, y_command to local coordinates
         # taken from LBC code (uses 90+theta instead of theta)
@@ -342,17 +341,21 @@ class CARLA_Data(Dataset):
         ego_y = measurements[self.seq_len-1]['y']
         x_command = measurements[self.seq_len-1]['x_command']
         y_command = measurements[self.seq_len-1]['y_command']
-        
+
         R = np.array([
             [np.cos(np.pi/2+ego_theta), -np.sin(np.pi/2+ego_theta)],
             [np.sin(np.pi/2+ego_theta),  np.cos(np.pi/2+ego_theta)]
             ])
+
         local_command_point = np.array([x_command-ego_x, y_command-ego_y])
         local_command_point = R.T.dot(local_command_point)
 
         data['target_point'] = local_command_point
-        
+
+
         data['target_point_image'] = draw_target_point(local_command_point)
+
+
         return data
 
 def get_depth(data):

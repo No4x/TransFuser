@@ -187,6 +187,7 @@ def main():
     trainer = Engine(model=model, optimizer=optimizer, dataloader_train=dataloader_train, dataloader_val=dataloader_val,
                      args=args, config=config, writer=writer, device=device, rank=rank, world_size=world_size,
                      parallel=parallel, cur_epoch=args.start_epoch)
+    optimizer.param_groups[0]['capturable'] = True ##1.05 to solve capturable
 
     for epoch in range(trainer.cur_epoch, args.epochs):
         if(parallel == True):
